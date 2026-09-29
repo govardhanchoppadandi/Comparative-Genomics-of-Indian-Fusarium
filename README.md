@@ -1,3 +1,6 @@
+# Comparative Genomics of Indian *Fusarium graminearum* and *Fusarium avenaceum*
+
+This repository contains reproducible computational workflows, scripts, and analysis pipelines supporting the comparative genomic analysis of Indian *Fusarium* isolates and related publicly available genomes.
 ## Overall Workflow
 
 The overall experimental and computational workflow used in this study is shown below.
