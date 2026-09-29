@@ -1,19 +1,28 @@
 cff-version: 1.2.0
-message: "If you use this repository or its workflows, please cite the publication."
-type: dataset
-title: "Fusarium Comparative Genomics"
+message: "If you use this repository or its workflows, please cite the associated publication."
+type: software
+title: "Comparative Genomics of Indian Fusarium"
 version: "1.0.0"
 date-released: 2026-08-27
+
 authors:
-   Govardhan Choppadandi, 
-Correspondence:
-     Sudhir Navathe* 
-    Affiliation: "Agharkar Research Institute, Pune, India"
-repository-code: "https://github.com/govardhanchoppadandi/Fusarium-comparative-genomics"
-license: MIT
+  - family-names: "Choppadandi"
+    given-names: "Govardhan"
+    affiliation: "Agharkar Research Institute, Pune, India"
+
+  - family-names: "Navathe"
+    given-names: "Sudhir"
+    affiliation: "Agharkar Research Institute, Pune, India"
+
+repository-code: "https://github.com/govardhanchoppadandi/Comparative-Genomics-of-Indian-Fusarium"
+
+license: "MIT"
+
 keywords:
-  - Fusarium
-  - comparative genomics
-  - transposable elements
-  - EarlGrey
-  - genome analysis
+  - "Fusarium"
+  - "Fusarium graminearum"
+  - "Fusarium avenaceum"
+  - "comparative genomics"
+  - "fungal genomics"
+  - "wheat"
+  - "bioinformatics"
