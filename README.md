@@ -134,12 +134,15 @@ It was developed to simplify processing of multiple fungal genomes and reduce re
 **Dr. Sudhir Navathe**  
 **Govardhan Choppadandi**
 
-### Citation
+## Associated Publication
 
-**To be updated after publication.**
+This repository supports the comparative genomic analyses described in the associated manuscript.
 
-The citation information will be added to the software documentation and `CITATION.cff` after publication of the associated work.
+**Manuscript title:** To be updated with the final published title.
 
+The study describes the comparative genomic analysis of the Indian *Fusarium graminearum* isolate TNW1 and *Fusarium avenaceum* isolate DMW8 together with related publicly available genomes.
+
+The final publication details, DOI, and citation information will be added after publication.
 ## Data Organization
 
 Input datasets, metadata, accession information, and analysis outputs are organized separately from computational scripts.
