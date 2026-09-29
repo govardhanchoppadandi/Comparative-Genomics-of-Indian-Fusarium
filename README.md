@@ -1,6 +1,11 @@
 # Comparative Genomics of Indian *Fusarium graminearum* and *Fusarium avenaceum*
 
 This repository contains reproducible computational workflows, scripts, and analysis pipelines supporting the comparative genomic analysis of Indian *Fusarium* isolates and related publicly available genomes.
+
+## Study Overview
+
+The study focuses on comparative genomic analysis of the Indian *Fusarium graminearum* isolate TNW1 and *Fusarium avenaceum* isolate DMW8, together with related publicly available *Fusarium* genomes. The repository contains the computational workflows used for genome quality assessment, phylogenetic analysis, orthology and gene-family evolution, non-coding RNA analysis, transposable-element analysis, RIP analysis, KEGG annotation, genome visualization, telomere analysis, effector prediction, and functional annotation.
+
 ## Overall Workflow
 
 The overall experimental and computational workflow used in this study is shown below.
