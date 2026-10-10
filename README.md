@@ -1,4 +1,4 @@
-# Comparative Genomics of Indian *Fusarium graminearum* and *Fusarium avenaceum*
+# Hybrid Genome Assemblies of Fusarium graminearum and Fusarium avenaceum from Indian Wheat: Insights into Virulence Frameworks and Genome Evolution *
 
 This repository contains reproducible computational workflows, scripts, and analysis pipelines supporting the comparative genomic analysis of Indian *Fusarium* isolates and related publicly available genomes.
 
