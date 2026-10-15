@@ -1,2889 +1,535 @@
-# ================================================================================
+# ==============================================================================
 # FUSARIUM 36 — CAFE5 + GENOME FEATURES
-# FINAL CLEAN PUBLICATION FIGURE
-#
-# IMPORTANT FIXES
-# ------------------------------------------------------------------------------
-# 1. TNW1 / TNW1_proteins / TNW_1 are treated as the SAME genome.
-# 2. Feature data are matched using normalized genome IDs.
-# 3. TNW1 is checked BEFORE plotting.
-# 4. Missing data are NOT silently converted to zero.
-# 5. CAFE values remain separate from genome names.
-# 6. CAFE labels use light leader lines and do not cross values.
-# 7. Genome names are large and bold.
-# 8. CAFE values are large and bold.
-# 9. Panel values remain separated.
-# 10. antiSMASH and dbCAN legends are completely separate.
-# 11. Short legends:
-#       antiSMASH: NRPS | PKS | Hybrid | TER | Other
-#       dbCAN3:    GH | GT | CE | PL | AA | CBM
-# 12. No large figure title.
-# 13. No numerical labels on feature bars.
-# 14. PNG + PDF + TIFF.
-# ================================================================================
+# Integrated publication figure: exact tree/master order across all panels
+# Outputs: PNG, PDF, TIFF, and matched data CSV
+# ==============================================================================
 
-
-# ================================================================================
-# 1. PACKAGES
-# ================================================================================
-
-required_packages <- c(
-  "ape",
-  "readxl"
-)
-
+required_packages <- c("ape", "readxl")
 for (p in required_packages) {
-
-  if (!requireNamespace(p, quietly = TRUE)) {
-    install.packages(p)
-  }
-
+  if (!requireNamespace(p, quietly = TRUE)) install.packages(p)
 }
-
 library(ape)
 library(readxl)
+options(stringsAsFactors = FALSE)
 
-options(
-  stringsAsFactors = FALSE
-)
-
-
-# ================================================================================
-# 2. FILE PATHS
-# ================================================================================
-
+# ---- 1. INPUT FILES -----------------------------------------------------------
 TREE_FILE <- "D:/ORTHOFINDER/CAFE_FUSARIUM36/tree/Fusarium36_midpoint_rooted_ultrametric.nwk"
-
 CAFE_FILE <- "D:/ORTHOFINDER/CAFE_FUSARIUM36/FULL_CAFE5/Base_clade_results.txt"
-
-TE_RIP_FILE <- "D:/genomes_clean/TE_RIP_master_results_FINAL.csv"
-
-ANTISMASH_FILE <- "D:/antiSMASH_36_Genomes_COMPLETE_Comparison.xlsx"
-
+TE_RIP_FILE <- "D:/TE_RIP.xlsx"
+ANTISMASH_FILE <- "D:/antiSMASH_36_Genomes_Final_Cluster_Similarity_Analysis.xlsx"
 DBCAN_FILE <- "D:/dbCAN3_Species_Wise_Summary.xlsx"
 
-
-# ================================================================================
-# 3. OUTPUT DIRECTORY
-# ================================================================================
-
 OUT_DIR <- "C:/Users/Admin/Desktop/orthofinder results"
+dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
+PNG_FILE <- file.path(OUT_DIR, "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.png")
+PDF_FILE <- file.path(OUT_DIR, "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.pdf")
+TIFF_FILE <- file.path(OUT_DIR, "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.tiff")
+DATA_FILE <- file.path(OUT_DIR, "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL_Data.csv")
 
-dir.create(
-  OUT_DIR,
-  recursive = TRUE,
-  showWarnings = FALSE
-)
-
-PNG_FILE <- file.path(
-  OUT_DIR,
-  "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.png"
-)
-
-PDF_FILE <- file.path(
-  OUT_DIR,
-  "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.pdf"
-)
-
-TIFF_FILE <- file.path(
-  OUT_DIR,
-  "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL.tiff"
-)
-
-DATA_FILE <- file.path(
-  OUT_DIR,
-  "Fusarium36_CAFE5_Integrated_Genome_Features_FINAL_Data.csv"
-)
-
-
-# ================================================================================
-# 4. EXACT 36-GENOME ORDER
-# ================================================================================
-
+# ---- 2. EXACT MASTER ORDER ----------------------------------------------------
 master_order <- c(
-
-  "TNW1_proteins",
-
-  "Fgram_mFG23",
-  "Fusgr_PH-1_2",
-  "Fusgr_CS3005",
-  "Fusgr_KSU23473",
-  "Fusgr_TaB10",
-
-  "Fgram_PH1",
-  "Fgram_1142",
-  "Fgram_ITA1606",
-  "Fgram_Fr10a3",
-  "Fgram_CBS128539",
-  "Fgram_237",
-  "Fgram_CBS119799",
-  "Fgram_N42",
-  "Fgram_DAOM241165",
-  "Fusgr_KCTC16661",
-  "Fgram_St6",
-  "Fgram_0343",
-  "Fgram_Fg820",
-  "Fgram_CBS110263",
-
-  "DMW8",
-
-  "Fusav_XZ-22-127",
-  "Fusav_MPISDFRAT0044",
-  "Fusav_KA13",
-  "Fusav_NRRL13321",
-  "Fusav_FaLH27",
-  "Fusav_NC74",
-  "Fusav_S1870",
-  "Fusav_542020KK",
-  "Fusav_562020KK",
-  "Fusav_FaLH03",
-  "Fusav_S1874",
-  "Fusav_S1860",
-  "Fusav_Fa05001",
-  "Fusav_WV21P1A",
-  "Fusav_F156N33"
+  "TNW1_proteins", "Fgram_mFG23", "Fusgr_PH-1_2", "Fusgr_CS3005",
+  "Fusgr_KSU23473", "Fusgr_TaB10", "Fgram_PH1", "Fgram_1142",
+  "Fgram_ITA1606", "Fgram_Fr10a3", "Fgram_CBS128539", "Fgram_237",
+  "Fgram_CBS119799", "Fgram_N42", "Fgram_DAOM241165", "Fusgr_KCTC16661",
+  "Fgram_St6", "Fgram_0343", "Fgram_Fg820", "Fgram_CBS110263",
+  "DMW8", "Fusav_XZ-22-127", "Fusav_MPISDFRAT0044", "Fusav_KA13",
+  "Fusav_NRRL13321", "Fusav_FaLH27", "Fusav_NC74", "Fusav_S1870",
+  "Fusav_542020KK", "Fusav_562020KK", "Fusav_FaLH03", "Fusav_S1874",
+  "Fusav_S1860", "Fusav_Fa05001", "Fusav_WV21P1A", "Fusav_F156N33"
 )
+stopifnot(length(master_order) == 36)
 
-if (length(master_order) != 36) {
-  stop("master_order must contain exactly 36 genomes.")
-}
+# ---- 3. COLORS / TEXT ---------------------------------------------------------
+EXPANSION <- "#E64B35"; CONTRACTION <- "#35AFC5"
+TREECOL <- "#303030"; TEXTCOL <- "#111111"; LEADERCOL <- "#9A9A9A"
+COL_GENOME <- "#355C8A"; COL_TE <- "#7B3FA1"; COL_RIP <- "#E89A2B"
+COL_LRAR <- "#009E73"; COL_OVERLAP <- "#777777"; COL_BGC <- "#333333"
+ANTISMASH_COLORS <- c(NRPS="#D73027", PKS="#4575B4", Hybrid="#984EA3",
+                      Terpene="#4DAF4A", Other="#F0A202")
+DBCAN_COLORS <- c(GH="#2C7FB8", GT="#7FCDBB", CE="#F03B20",
+                  PL="#88419D", AA="#FDAE61", CBM="#41AB5D")
+CE_GENOME <- 0.58; CE_CAFE_VALUE <- 0.50; CE_INTERNAL_VALUE <- 0.46
+CE_HEADER <- 0.62; CE_PANEL_TITLE <- 0.57; CE_AXIS <- 0.43
+CE_LEGEND <- 0.45; CE_FOOT <- 0.40
 
-
-# ================================================================================
-# 5. COLORS
-# ================================================================================
-
-EXPANSION   <- "#E64B35"
-CONTRACTION <- "#35AFC5"
-
-TREECOL   <- "#303030"
-TEXTCOL   <- "#111111"
-LEADERCOL <- "#9A9A9A"
-
-COL_GENOME  <- "#355C8A"
-COL_TE      <- "#7B3FA1"
-COL_RIP     <- "#E89A2B"
-COL_LRAR    <- "#009E73"
-COL_OVERLAP <- "#777777"
-COL_BGC     <- "#333333"
-
-ANTISMASH_COLORS <- c(
-  NRPS   = "#D73027",
-  PKS    = "#4575B4",
-  Hybrid = "#984EA3",
-  TER    = "#4DAF4A",
-  Other  = "#F0A202"
-)
-
-DBCAN_COLORS <- c(
-  GH  = "#2C7FB8",
-  GT  = "#7FCDBB",
-  CE  = "#F03B20",
-  PL  = "#88419D",
-  AA  = "#FDAE61",
-  CBM = "#41AB5D"
-)
-
-
-# ================================================================================
-# 6. FONT SETTINGS
-# ================================================================================
-
-FONT_MAIN   <- 2
-FONT_GENOME <- 2
-FONT_HEADER <- 2
-FONT_AXIS   <- 2
-FONT_VALUE  <- 2
-FONT_LEGEND <- 2
-FONT_FOOT   <- 1
-
-
-# ================================================================================
-# 7. FONT SIZES
-# ================================================================================
-
-CE_GENOME        <- 0.58
-CE_CAFE_VALUE    <- 0.50
-CE_INTERNAL_VALUE <- 0.46
-
-CE_HEADER        <- 0.62
-CE_PANEL_TITLE   <- 0.57
-CE_AXIS          <- 0.43
-CE_LEGEND       <- 0.45
-CE_FOOT          <- 0.40
-
-
-# ================================================================================
-# 8. ROBUST GENOME NORMALIZATION
-# ================================================================================
-#
-# THIS IS THE IMPORTANT TNW1 FIX.
-#
-# Examples:
-#
-# TNW1
-# TNW_1
-# TNW1_proteins
-# TNW_1_proteins
-#
-# all become:
-#
-# tnw1
-#
-# Therefore they will match correctly.
-# ================================================================================
-
+# ---- 4. HELPERS ---------------------------------------------------------------
 normalize_genome <- function(x) {
+  x <- tolower(trimws(as.character(x)))
 
-  x <- as.character(x)
+  # Remove common file extensions first.
+  x <- gsub("\\.(fa|fasta|faa|fna|gz|xlsx|csv)$", "", x, ignore.case=TRUE)
 
-  x <- trimws(x)
+  # Treat DMW8_draft_genome as the same genome as DMW8.
+  x <- gsub("_draft_genome$", "", x, ignore.case=TRUE)
 
-  x <- tolower(x)
+  # Treat protein-suffixed IDs as their base genome IDs.
+  x <- gsub("_proteins?$", "", x, ignore.case=TRUE)
 
-  # remove common extensions
-  x <- gsub(
-    "\\.(fa|fasta|faa|fna|gz)$",
-    "",
-    x,
-    ignore.case = TRUE
-  )
-
-  # remove protein suffix
-  x <- gsub(
-    "_proteins$",
-    "",
-    x,
-    ignore.case = TRUE
-  )
-
-  x <- gsub(
-    "_protein$",
-    "",
-    x,
-    ignore.case = TRUE
-  )
-
-  # TNW1 / TNW_1 equivalence
-  x <- gsub(
-    "[^a-z0-9]",
-    "",
-    x
-  )
-
-  x
-
+  # Ignore punctuation, spaces, underscores, and hyphens.
+  gsub("[^a-z0-9]", "", x)
 }
 
+# Confirm known ID variants normalize to the same key.
+stopifnot(
+  normalize_genome("DMW8") == normalize_genome("DMW8_draft_genome"),
+  normalize_genome("TNW1") == normalize_genome("TNW1_proteins"),
+  normalize_genome("TNW1") == normalize_genome("TNW_1")
+)
+clean_genome <- function(x) gsub("\\s+", "", trimws(as.character(x)))
 
-# ================================================================================
-# 9. DISPLAY NAME CLEANER
-# ================================================================================
-
-clean_genome <- function(x) {
-
-  x <- as.character(x)
-
-  x <- trimws(x)
-
-  x <- gsub(
-    "\\s+",
-    "",
-    x
-  )
-
-  x
-
-}
-
-
-# ================================================================================
-# 10. FIND COLUMN
-# ================================================================================
-
-find_column <- function(
-    df,
-    exact = NULL,
-    patterns = NULL
-) {
-
+find_column <- function(df, exact=NULL, patterns=NULL) {
   nms <- names(df)
-
   if (!is.null(exact)) {
-
-    hit <- exact[
-      exact %in% nms
-    ]
-
-    if (length(hit) > 0) {
-      return(hit[1])
-    }
-
+    hit <- exact[exact %in% nms]
+    if (length(hit)) return(hit[1])
   }
-
-  if (!is.null(patterns)) {
-
-    for (p in patterns) {
-
-      hit <- grep(
-        p,
-        nms,
-        ignore.case = TRUE,
-        value = TRUE
-      )
-
-      if (length(hit) > 0) {
-        return(hit[1])
-      }
-
-    }
-
+  if (!is.null(patterns)) for (p in patterns) {
+    hit <- grep(p, nms, ignore.case=TRUE, value=TRUE)
+    if (length(hit)) return(hit[1])
   }
-
   NULL
-
 }
-
-
-# ================================================================================
-# 11. READ TREE
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("READING TREE\n")
-cat("============================================================\n")
-
-if (!file.exists(TREE_FILE)) {
-  stop("TREE FILE NOT FOUND:\n", TREE_FILE)
-}
-
-tr <- read.tree(
-  TREE_FILE
-)
-
-NTIP   <- Ntip(tr)
-NNODE  <- tr$Nnode
-NTOTAL <- NTIP + NNODE
-
-cat("Tips:        ", NTIP, "\n", sep = "")
-cat("Internal:    ", NNODE, "\n", sep = "")
-cat("Total nodes: ", NTOTAL, "\n", sep = "")
-cat("Rooted:      ", is.rooted(tr), "\n", sep = "")
-cat("Binary:      ", is.binary(tr), "\n", sep = "")
-
-if (NTIP != 36) {
-  stop("Tree does not contain exactly 36 tips.")
-}
-
-
-# ================================================================================
-# 12. TREE TIP NAMES
-# ================================================================================
-
-tree_names <- sub(
-  "<[0-9]+>$",
-  "",
-  tr$tip.label
-)
-
-tree_names <- clean_genome(
-  tree_names
-)
-
-tree_keys <- normalize_genome(
-  tree_names
-)
-
-master_keys <- normalize_genome(
-  master_order
-)
-
-
-# ================================================================================
-# 13. CHECK MASTER / TREE MATCHING
-# ================================================================================
-
-missing_tree <- setdiff(
-  master_keys,
-  tree_keys
-)
-
-extra_tree <- setdiff(
-  tree_keys,
-  master_keys
-)
-
-if (length(missing_tree) > 0) {
-
-  cat("\nMissing from tree:\n")
-
-  print(missing_tree)
-
-}
-
-if (length(extra_tree) > 0) {
-
-  cat("\nExtra tree names:\n")
-
-  print(extra_tree)
-
-}
-
-if (
-  length(missing_tree) > 0 ||
-  length(extra_tree) > 0
-) {
-
-  stop(
-    "Tree names and master_order do not match after normalization."
-  )
-
-}
-
-
-# ================================================================================
-# 14. READ CAFE5
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("READING CAFE5\n")
-cat("============================================================\n")
-
-if (!file.exists(CAFE_FILE)) {
-  stop("CAFE5 FILE NOT FOUND:\n", CAFE_FILE)
-}
-
-cafe <- read.delim(
-  CAFE_FILE,
-  header = TRUE,
-  sep = "\t",
-  stringsAsFactors = FALSE,
-  check.names = FALSE,
-  comment.char = ""
-)
-
-colnames(cafe) <- trimws(
-  colnames(cafe)
-)
-
-colnames(cafe)[1] <- "Taxon_ID"
-
-required_cafe <- c(
-  "Taxon_ID",
-  "Increase",
-  "Decrease"
-)
-
-if (
-  !all(
-    required_cafe %in%
-      colnames(cafe)
-  )
-) {
-
-  stop(
-    "Required CAFE columns are missing.\nAvailable columns:\n",
-    paste(
-      colnames(cafe),
-      collapse = "\n"
-    )
-  )
-
-}
-
-
-# ================================================================================
-# 15. CAFE IDs
-# ================================================================================
-
-cafe$CAFE_ID <- suppressWarnings(
-  as.integer(
-    sub(
-      ".*<([0-9]+)>.*",
-      "\\1",
-      cafe$Taxon_ID
-    )
-  )
-)
-
-direct_id <- suppressWarnings(
-  as.integer(
-    as.character(
-      cafe$Taxon_ID
-    )
-  )
-)
-
-missing_id <- is.na(
-  cafe$CAFE_ID
-) &
-  !is.na(
-    direct_id
-  )
-
-if (any(missing_id)) {
-
-  cafe$CAFE_ID[
-    missing_id
-  ] <- direct_id[
-    missing_id
-  ]
-
-}
-
-cafe$Increase <- suppressWarnings(
-  as.numeric(
-    cafe$Increase
-  )
-)
-
-cafe$Decrease <- suppressWarnings(
-  as.numeric(
-    cafe$Decrease
-  )
-)
-
-if (any(is.na(cafe$CAFE_ID))) {
-  stop("NA CAFE IDs detected.")
-}
-
-if (any(is.na(cafe$Increase))) {
-  stop("NA CAFE Increase values detected.")
-}
-
-if (any(is.na(cafe$Decrease))) {
-  stop("NA CAFE Decrease values detected.")
-}
-
-
-# ================================================================================
-# 16. CAFE MAP
-# ================================================================================
-
-cafe_map <- vector(
-  "list",
-  NTOTAL
-)
-
-for (
-  i in seq_len(
-    nrow(cafe)
-  )
-) {
-
-  id <- cafe$CAFE_ID[i]
-
-  if (
-    id < 1 ||
-    id > NTOTAL
-  ) {
-
-    stop(
-      "CAFE ID outside tree: ",
-      id
-    )
-
+read_excel_first_matching_sheet <- function(path, preferred=NULL, required=NULL) {
+  sheets <- readxl::excel_sheets(path)
+  if (!is.null(preferred) && preferred %in% sheets) {
+    x <- as.data.frame(readxl::read_excel(path, sheet=preferred), check.names=FALSE)
+    if (is.null(required) || all(required %in% names(x))) return(x)
   }
+  for (s in sheets) {
+    x <- tryCatch(as.data.frame(readxl::read_excel(path, sheet=s), check.names=FALSE),
+                  error=function(e) NULL)
+    if (!is.null(x) && (is.null(required) || all(required %in% names(x)))) {
+      message("Using sheet '", s, "' from ", basename(path))
+      return(x)
+    }
+  }
+  stop("Could not find a suitable sheet in ", path,
+       if (!is.null(required)) paste0("\nRequired columns: ", paste(required, collapse=", ")))
+}
+check_duplicates <- function(df, label) {
+  if (any(is.na(df$Key) | df$Key == "")) stop("Blank genome ID in ", label)
+  d <- unique(df$Key[duplicated(df$Key)])
+  if (length(d)) stop("Duplicate normalized genome IDs in ", label, ": ",
+                      paste(d, collapse=", "))
+}
+match_features <- function(master, source, columns, label) {
+  idx <- match(master$Key, source$Key)
+  if (anyNA(idx)) stop("Missing genomes in ", label, ": ",
+                       paste(master$Genome[is.na(idx)], collapse=", "))
+  out <- source[idx, columns, drop=FALSE]
+  rownames(out) <- NULL
+  out
+}
+as_num <- function(x) suppressWarnings(as.numeric(as.character(x)))
 
-  cafe_map[[id]] <-
-    cafe[
-      i,
-      ,
-      drop = FALSE
-    ]
-
+# ---- 5. READ AND VALIDATE TREE ------------------------------------------------
+if (!file.exists(TREE_FILE)) stop("Tree file not found: ", TREE_FILE)
+tr <- ape::read.tree(TREE_FILE)
+if (ape::Ntip(tr) != 36) stop("Tree must contain exactly 36 tips; found ", ape::Ntip(tr))
+tree_names <- clean_genome(sub("<[0-9]+>$", "", tr$tip.label))
+tree_keys <- normalize_genome(tree_names)
+master_keys <- normalize_genome(master_order)
+if (anyDuplicated(tree_keys)) stop("Duplicate normalized IDs in tree labels.")
+if (length(setdiff(master_keys, tree_keys)) || length(setdiff(tree_keys, master_keys))) {
+  stop("Tree labels do not match master_order after normalization.\\nMissing from tree: ",
+       paste(setdiff(master_keys, tree_keys), collapse=", "),
+       "\\nExtra in tree: ", paste(setdiff(tree_keys, master_keys), collapse=", "))
 }
 
-get_cafe <- function(node) {
+# Keep the input phylogeny unchanged. Category rows will follow the actual
+# plotted tip coordinates calculated below, not Excel row order or raw Newick text order.
 
-  cafe_map[[node]]
-
+# ---- 6. READ CAFE5 ------------------------------------------------------------
+if (!file.exists(CAFE_FILE)) stop("CAFE file not found: ", CAFE_FILE)
+cafe <- read.delim(CAFE_FILE, header=TRUE, sep="\t", stringsAsFactors=FALSE,
+                   check.names=FALSE, comment.char="")
+names(cafe) <- trimws(names(cafe))
+names(cafe)[1] <- "Taxon_ID"
+if (!all(c("Taxon_ID", "Increase", "Decrease") %in% names(cafe))) {
+  stop("CAFE file requires Taxon_ID, Increase, and Decrease columns.")
 }
+cafe$CAFE_ID <- suppressWarnings(as.integer(sub(".*<([0-9]+)>.*", "\\1", cafe$Taxon_ID)))
+direct_id <- suppressWarnings(as.integer(as.character(cafe$Taxon_ID)))
+ii <- is.na(cafe$CAFE_ID) & !is.na(direct_id)
+cafe$CAFE_ID[ii] <- direct_id[ii]
+cafe$Increase <- as_num(cafe$Increase); cafe$Decrease <- as_num(cafe$Decrease)
+if (anyNA(cafe$CAFE_ID) || anyNA(cafe$Increase) || anyNA(cafe$Decrease))
+  stop("Missing/non-numeric CAFE IDs or Increase/Decrease values.")
+NTIP <- ape::Ntip(tr); NTOTAL <- NTIP + tr$Nnode
+if (any(cafe$CAFE_ID < 1 | cafe$CAFE_ID > NTOTAL)) stop("CAFE ID outside tree node range.")
+if (anyDuplicated(cafe$CAFE_ID)) stop("Duplicate CAFE IDs in Base_clade_results.txt.")
+cafe_map <- vector("list", NTOTAL)
+for (i in seq_len(nrow(cafe))) cafe_map[[cafe$CAFE_ID[i]]] <- cafe[i,,drop=FALSE]
+get_cafe <- function(node) cafe_map[[node]]
+format_change <- function(z) paste0("+", format(z$Increase, big.mark=",",
+  scientific=FALSE, trim=TRUE), " / -", format(z$Decrease, big.mark=",",
+  scientific=FALSE, trim=TRUE))
 
-
-# ================================================================================
-# 17. READ TE / RIP
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("READING TE / RIP DATA\n")
-cat("============================================================\n")
-
-if (!file.exists(TE_RIP_FILE)) {
-  stop("TE/RIP FILE NOT FOUND:\n", TE_RIP_FILE)
+# ---- 7. READ TE/RIP EXCEL -----------------------------------------------------
+if (!file.exists(TE_RIP_FILE)) stop("TE/RIP file not found: ", TE_RIP_FILE)
+te <- as.data.frame(readxl::read_excel(TE_RIP_FILE), check.names=FALSE)
+genome_col_te <- find_column(te, exact=c("Genome","Species"),
+                             patterns=c("^genome$","^species$"))
+genome_size_col <- find_column(te, exact="Genome_size_Mb",
+                               patterns=c("genome.*size.*mb","genome.*size","assembly.*size"))
+te_col <- find_column(te, exact="TE_percent_genome",
+                      patterns=c("^TE_percent","TE.*percent.*genome","TE.*content"))
+rip_col <- find_column(te, exact="RIP_percent_genome",
+                       patterns=c("^RIP_percent","RIP.*percent.*genome","RIP.*content"))
+lrar_col <- find_column(te, exact="LRAR_percent_genome",
+                        patterns=c("LRAR.*percent.*genome","LRAR.*percent","LRAR.*content"))
+overlap_col <- find_column(te, exact="LRAR_with_TE_overlap_percent",
+                           patterns=c("LRAR.*TE.*overlap.*percent","TE.*RIP.*overlap.*percent",
+                                      "RIP.*TE.*overlap.*percent","TE_RIP_overlap"))
+te_cols <- list(Genome=genome_col_te, Genome_size=genome_size_col, TE=te_col,
+                RIP=rip_col, LRAR=lrar_col, Overlap=overlap_col)
+if (any(vapply(te_cols, is.null, logical(1)))) {
+  stop("Could not identify TE/RIP columns. Available columns: ", paste(names(te), collapse=", "))
 }
-
-te <- read.csv(
-  TE_RIP_FILE,
-  check.names = FALSE,
-  stringsAsFactors = FALSE
-)
-
-genome_col_te <- find_column(
-  te,
-  exact = c(
-    "Genome",
-    "Species"
-  )
-)
-
-genome_size_col <- find_column(
-  te,
-  exact = c(
-    "Genome_size_Mb"
-  ),
-  patterns = c(
-    "genome.*size.*mb",
-    "genome.*size",
-    "assembly.*size"
-  )
-)
-
-te_col <- find_column(
-  te,
-  exact = c(
-    "TE_percent_genome"
-  ),
-  patterns = c(
-    "^TE_percent",
-    "TE.*percent.*genome",
-    "TE.*content"
-  )
-)
-
-rip_col <- find_column(
-  te,
-  exact = c(
-    "RIP_percent_genome"
-  ),
-  patterns = c(
-    "^RIP_percent",
-    "RIP.*percent.*genome",
-    "RIP.*content"
-  )
-)
-
-lrar_col <- find_column(
-  te,
-  exact = c(
-    "LRAR_percent_genome"
-  ),
-  patterns = c(
-    "LRAR.*percent.*genome",
-    "LRAR.*percent",
-    "LRAR.*content"
-  )
-)
-
-overlap_col <- find_column(
-  te,
-  exact = c(
-    "LRAR_with_TE_overlap_percent"
-  ),
-  patterns = c(
-    "LRAR.*TE.*overlap.*percent",
-    "TE.*RIP.*overlap.*percent",
-    "RIP.*TE.*overlap.*percent",
-    "TE_RIP_overlap"
-  )
-)
-
-required_te_cols <- list(
-  Genome = genome_col_te,
-  Genome_size = genome_size_col,
-  TE = te_col,
-  RIP = rip_col,
-  LRAR = lrar_col,
-  Overlap = overlap_col
-)
-
-missing_te <- names(
-  required_te_cols
-)[
-  vapply(
-    required_te_cols,
-    is.null,
-    logical(1)
-  )
-]
-
-if (length(missing_te) > 0) {
-
-  stop(
-    "Missing TE/RIP columns: ",
-    paste(
-      missing_te,
-      collapse = ", "
-    ),
-    "\nAvailable columns:\n",
-    paste(
-      names(te),
-      collapse = "\n"
-    )
-  )
-
-}
-
-
 te_clean <- data.frame(
-
-  Genome =
-    clean_genome(
-      te[[genome_col_te]]
-    ),
-
-  Key =
-    normalize_genome(
-      te[[genome_col_te]]
-    ),
-
-  Genome_size_Mb =
-    suppressWarnings(
-      as.numeric(
-        te[[genome_size_col]]
-      )
-    ),
-
-  TE =
-    suppressWarnings(
-      as.numeric(
-        te[[te_col]]
-      )
-    ),
-
-  RIP =
-    suppressWarnings(
-      as.numeric(
-        te[[rip_col]]
-      )
-    ),
-
-  LRAR =
-    suppressWarnings(
-      as.numeric(
-        te[[lrar_col]]
-      )
-    ),
-
-  TE_RIP_overlap =
-    suppressWarnings(
-      as.numeric(
-        te[[overlap_col]]
-      )
-    ),
-
-  stringsAsFactors = FALSE
+  Genome=clean_genome(te[[genome_col_te]]),
+  Key=normalize_genome(te[[genome_col_te]]),
+  Genome_size_Mb=as_num(te[[genome_size_col]]),
+  TE=as_num(te[[te_col]]), RIP=as_num(te[[rip_col]]),
+  LRAR=as_num(te[[lrar_col]]), TE_RIP_overlap=as_num(te[[overlap_col]]),
+  check.names=FALSE
 )
 
-
-# ================================================================================
-# 18. READ antiSMASH
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("READING antiSMASH\n")
-cat("============================================================\n")
-
-if (!file.exists(ANTISMASH_FILE)) {
-  stop("antiSMASH FILE NOT FOUND:\n", ANTISMASH_FILE)
+# ---- 8. READ antiSMASH --------------------------------------------------------
+if (!file.exists(ANTISMASH_FILE)) stop("antiSMASH file not found: ", ANTISMASH_FILE)
+antismash <- read_excel_first_matching_sheet(
+  ANTISMASH_FILE, preferred="Category_Summary",
+  required=c("Total_BGC_Regions","NRPS","PKS","Hybrid_NRPS_PKS","Terpene","Other")
+)
+ant_genome_col <- find_column(antismash, exact=c("Genome","Species"),
+                              patterns=c("^genome$","^species$"))
+if (is.null(ant_genome_col)) stop("No Genome/Species column found in antiSMASH workbook.")
+req_ant <- c("Total_BGC_Regions","NRPS","PKS","Hybrid_NRPS_PKS","Terpene","Other")
+if (!all(req_ant %in% names(antismash))) {
+  stop("antiSMASH sheet lacks expected category columns. Found: ", paste(names(antismash), collapse=", "))
 }
-
-antismash <- read_excel(
-  ANTISMASH_FILE,
-  sheet = "Category_Summary"
-)
-
-ant_genome_col <- find_column(
-  antismash,
-  exact = c(
-    "Genome",
-    "Species"
-  )
-)
-
-if (is.null(ant_genome_col)) {
-
-  stop(
-    "antiSMASH Genome/Species column not found."
-  )
-
-}
-
-required_antismash <- c(
-  "Total_BGC_Regions",
-  "NRPS",
-  "PKS",
-  "Hybrid_NRPS_PKS",
-  "Terpene",
-  "Other"
-)
-
-missing_antismash <- setdiff(
-  required_antismash,
-  names(antismash)
-)
-
-if (length(missing_antismash) > 0) {
-
-  stop(
-    "Missing antiSMASH columns:\n",
-    paste(
-      missing_antismash,
-      collapse = ", "
-    )
-  )
-
-}
-
 antismash_clean <- data.frame(
-
-  Genome =
-    clean_genome(
-      antismash[[ant_genome_col]]
-    ),
-
-  Key =
-    normalize_genome(
-      antismash[[ant_genome_col]]
-    ),
-
-  Total_BGC =
-    suppressWarnings(
-      as.numeric(
-        antismash$Total_BGC_Regions
-      )
-    ),
-
-  NRPS =
-    suppressWarnings(
-      as.numeric(
-        antismash$NRPS
-      )
-    ),
-
-  PKS =
-    suppressWarnings(
-      as.numeric(
-        antismash$PKS
-      )
-    ),
-
-  Hybrid =
-    suppressWarnings(
-      as.numeric(
-        antismash$Hybrid_NRPS_PKS
-      )
-    ),
-
-  Terpene =
-    suppressWarnings(
-      as.numeric(
-        antismash$Terpene
-      )
-    ),
-
-  Other_BGC =
-    suppressWarnings(
-      as.numeric(
-        antismash$Other
-      )
-    ),
-
-  stringsAsFactors = FALSE
+  Genome=clean_genome(antismash[[ant_genome_col]]),
+  Key=normalize_genome(antismash[[ant_genome_col]]),
+  Total_BGC=as_num(antismash$Total_BGC_Regions),
+  NRPS=as_num(antismash$NRPS), PKS=as_num(antismash$PKS),
+  Hybrid=as_num(antismash$Hybrid_NRPS_PKS), Terpene=as_num(antismash$Terpene),
+  Other_BGC=as_num(antismash$Other), check.names=FALSE
 )
 
-
-# ================================================================================
-# 19. READ dbCAN3
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("READING dbCAN3\n")
-cat("============================================================\n")
-
-if (!file.exists(DBCAN_FILE)) {
-  stop("dbCAN3 FILE NOT FOUND:\n", DBCAN_FILE)
-}
-
-dbcan <- read_excel(
-  DBCAN_FILE,
-  sheet = "Genome_Summary"
-)
-
-dbcan_genome_col <- find_column(
-  dbcan,
-  exact = c(
-    "Genome",
-    "Species"
-  )
-)
-
-if (is.null(dbcan_genome_col)) {
-
-  stop(
-    "dbCAN3 Genome/Species column not found.\nAvailable columns:\n",
-    paste(
-      names(dbcan),
-      collapse = "\n"
-    )
-  )
-
-}
-
-required_dbcan <- c(
-  "GH",
-  "GT",
-  "CE",
-  "PL",
-  "AA",
-  "CBM"
-)
-
-missing_dbcan <- setdiff(
-  required_dbcan,
-  names(dbcan)
-)
-
-if (length(missing_dbcan) > 0) {
-
-  stop(
-    "Missing dbCAN3 columns:\n",
-    paste(
-      missing_dbcan,
-      collapse = ", "
-    )
-  )
-
-}
-
+# ---- 9. READ dbCAN3 -----------------------------------------------------------
+if (!file.exists(DBCAN_FILE)) stop("dbCAN3 file not found: ", DBCAN_FILE)
+dbcan <- read_excel_first_matching_sheet(DBCAN_FILE, preferred="Genome_Summary",
+                                         required=c("GH","GT","CE","PL","AA","CBM"))
+dbcan_genome_col <- find_column(dbcan, exact=c("Genome","Species"),
+                                patterns=c("^genome$","^species$"))
+if (is.null(dbcan_genome_col)) stop("No Genome/Species column found in dbCAN3 workbook.")
+if (!all(c("GH","GT","CE","PL","AA","CBM") %in% names(dbcan)))
+  stop("dbCAN3 sheet requires GH, GT, CE, PL, AA, CBM.")
 dbcan_clean <- data.frame(
-
-  Genome =
-    clean_genome(
-      dbcan[[dbcan_genome_col]]
-    ),
-
-  Key =
-    normalize_genome(
-      dbcan[[dbcan_genome_col]]
-    ),
-
-  GH =
-    suppressWarnings(
-      as.numeric(
-        dbcan$GH
-      )
-    ),
-
-  GT =
-    suppressWarnings(
-      as.numeric(
-        dbcan$GT
-      )
-    ),
-
-  CE =
-    suppressWarnings(
-      as.numeric(
-        dbcan$CE
-      )
-    ),
-
-  PL =
-    suppressWarnings(
-      as.numeric(
-        dbcan$PL
-      )
-    ),
-
-  AA =
-    suppressWarnings(
-      as.numeric(
-        dbcan$AA
-      )
-    ),
-
-  CBM =
-    suppressWarnings(
-      as.numeric(
-        dbcan$CBM
-      )
-    ),
-
-  stringsAsFactors = FALSE
+  Genome=clean_genome(dbcan[[dbcan_genome_col]]),
+  Key=normalize_genome(dbcan[[dbcan_genome_col]]),
+  GH=as_num(dbcan$GH), GT=as_num(dbcan$GT), CE=as_num(dbcan$CE),
+  PL=as_num(dbcan$PL), AA=as_num(dbcan$AA), CBM=as_num(dbcan$CBM),
+  check.names=FALSE
 )
 
-
-# ================================================================================
-# 20. CHECK FOR DUPLICATE NORMALIZED KEYS
-# ================================================================================
-
-check_duplicates <- function(
-    df,
-    name
-) {
-
-  dup <- unique(
-    df$Key[
-      duplicated(df$Key)
-    ]
-  )
-
-  if (length(dup) > 0) {
-
-    stop(
-      "\nDuplicate genome keys detected in ",
-      name,
-      ":\n",
-      paste(
-        dup,
-        collapse = "\n"
-      )
-    )
-
-  }
-
-}
-
-check_duplicates(
-  te_clean,
-  "TE/RIP"
+# ---- 10. STRICT MATCHING: NEVER SORT THE MASTER ORDER -------------------------
+check_duplicates(te_clean, "TE/RIP")
+check_duplicates(antismash_clean, "antiSMASH")
+check_duplicates(dbcan_clean, "dbCAN3")
+master <- data.frame(Genome=master_order, Key=master_keys, stringsAsFactors=FALSE)
+dat <- cbind(
+  master,
+  match_features(master, te_clean,
+    c("Genome_size_Mb","TE","RIP","LRAR","TE_RIP_overlap"), "TE/RIP"),
+  match_features(master, antismash_clean,
+    c("Total_BGC","NRPS","PKS","Hybrid","Terpene","Other_BGC"), "antiSMASH"),
+  match_features(master, dbcan_clean, c("GH","GT","CE","PL","AA","CBM"), "dbCAN3")
 )
+rownames(dat) <- NULL
+stopifnot(nrow(dat)==36, identical(dat$Genome, master_order), identical(dat$Key, master_keys))
 
-check_duplicates(
-  antismash_clean,
-  "antiSMASH"
-)
-
-check_duplicates(
-  dbcan_clean,
-  "dbCAN3"
-)
-
-
-# ================================================================================
-# 21. CREATE MASTER TABLE USING NORMALIZED KEYS
-# ================================================================================
-#
-# IMPORTANT:
-# DO NOT use merge() on the raw genome names.
-#
-# Everything is matched by Key.
-# ================================================================================
-
-dat <- data.frame(
-
-  Genome = master_order,
-
-  Key = master_keys,
-
-  stringsAsFactors = FALSE
-
-)
-
-
-dat <- merge(
-  dat,
-  te_clean[
-    ,
-    c(
-      "Key",
-      "Genome_size_Mb",
-      "TE",
-      "RIP",
-      "LRAR",
-      "TE_RIP_overlap"
-    )
-  ],
-  by = "Key",
-  all.x = TRUE,
-  sort = FALSE
-)
-
-
-dat <- merge(
-  dat,
-  antismash_clean[
-    ,
-    c(
-      "Key",
-      "Total_BGC",
-      "NRPS",
-      "PKS",
-      "Hybrid",
-      "Terpene",
-      "Other_BGC"
-    )
-  ],
-  by = "Key",
-  all.x = TRUE,
-  sort = FALSE
-)
-
-
-dat <- merge(
-  dat,
-  dbcan_clean[
-    ,
-    c(
-      "Key",
-      "GH",
-      "GT",
-      "CE",
-      "PL",
-      "AA",
-      "CBM"
-    )
-  ],
-  by = "Key",
-  all.x = TRUE,
-  sort = FALSE
-)
-
-
-# ================================================================================
-# 22. FORCE EXACT ORDER
-# ================================================================================
-
-dat <- dat[
-  match(
-    master_keys,
-    dat$Key
-  ),
-  ,
-  drop = FALSE
-]
-
-dat$Genome <- master_order
-
-
-# ================================================================================
-# 23. CHECK TNW1 BEFORE ANY ZERO FILLING
-# ================================================================================
-
-tnw1_row <- which(
-  dat$Key ==
-    normalize_genome(
-      "TNW1"
-    )
-)
-
-if (length(tnw1_row) != 1) {
-
-  stop(
-    "TNW1 could not be matched correctly."
-  )
-
-}
-
-cat("\n============================================================\n")
-cat("TNW1 DATA CHECK\n")
-cat("============================================================\n")
-
-print(
-  dat[
-    tnw1_row,
-    ,
-    drop = FALSE
-  ]
-)
-
-
-# ================================================================================
-# 24. CHECK ALL 36 GENOMES
-# ================================================================================
-
-numeric_columns <- c(
-
-  "Genome_size_Mb",
-  "TE",
-  "RIP",
-  "LRAR",
-  "TE_RIP_overlap",
-
-  "Total_BGC",
-  "NRPS",
-  "PKS",
-  "Hybrid",
-  "Terpene",
-  "Other_BGC",
-
-  "GH",
-  "GT",
-  "CE",
-  "PL",
-  "AA",
-  "CBM"
-
-)
-
+# Missing numeric measurements are reported and are NOT silently replaced by zero.
+numeric_columns <- c("Genome_size_Mb","TE","RIP","LRAR","TE_RIP_overlap",
+                     "Total_BGC","NRPS","PKS","Hybrid","Terpene","Other_BGC",
+                     "GH","GT","CE","PL","AA","CBM")
+cat("\nMISSING-VALUE REPORT (NA values remain NA):\n")
 for (cc in numeric_columns) {
-
-  dat[[cc]] <- suppressWarnings(
-    as.numeric(
-      dat[[cc]]
-    )
-  )
-
+  miss <- which(!is.finite(dat[[cc]]))
+  if (length(miss)) cat(cc, ": ", paste(dat$Genome[miss], collapse=", "), "\n", sep="")
 }
+tnw1_row <- which(dat$Key == normalize_genome("TNW1"))
+if (length(tnw1_row) != 1) stop("TNW1 did not resolve to exactly one row.")
+cat("\nTNW1 data check:\n")
+print(dat[tnw1_row, , drop=FALSE])
+write.csv(dat, DATA_FILE, row.names=FALSE, na="NA")
 
-
-# ================================================================================
-# 25. PRINT MATCH STATUS
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("DATA MATCH STATUS\n")
-cat("============================================================\n")
-
-for (i in seq_len(nrow(dat))) {
-
-  status <- c(
-    Genome_size = !is.na(dat$Genome_size_Mb[i]),
-    TE          = !is.na(dat$TE[i]),
-    RIP         = !is.na(dat$RIP[i]),
-    LRAR        = !is.na(dat$LRAR[i]),
-    Overlap     = !is.na(dat$TE_RIP_overlap[i]),
-    antiSMASH   = !is.na(dat$Total_BGC[i]),
-    dbCAN3      = !is.na(dat$GH[i])
-  )
-
-  if (!all(status)) {
-
-    cat(
-      "\nWARNING: ",
-      dat$Genome[i],
-      "\n",
-      sep = ""
-    )
-
-    print(
-      status
-    )
-
-  }
-
-}
-
-
-# ================================================================================
-# 26. ONLY NOW REPLACE TRUE MISSING VALUES WITH ZERO
-# ================================================================================
-#
-# This means a real matched TNW1 row is retained.
-# ================================================================================
-
+# For plotting only, NA feature values are treated as zero-length bars.
+# The exported CSV retains NA so missing values are distinguishable from true zeros.
+plot_dat <- dat
 for (cc in numeric_columns) {
-
-  dat[[cc]][
-    !is.finite(
-      dat[[cc]]
-    )
-  ] <- NA_real_
-
-  dat[[cc]][
-    is.na(
-      dat[[cc]]
-    )
-  ] <- 0
-
+  plot_dat[[cc]][!is.finite(plot_dat[[cc]])] <- 0
 }
 
-
-# ================================================================================
-# 27. SAVE FINAL DATA
-# ================================================================================
-
-write.csv(
-  dat,
-  DATA_FILE,
-  row.names = FALSE
+# ---- 11. TREE COORDINATES -----------------------------------------------------
+tmp_pdf <- tempfile(fileext=".pdf")
+grDevices::pdf(tmp_pdf, width=10, height=12)
+plot.phylo(tr, type="phylogram", direction="rightwards", use.edge.length=TRUE,
+           show.tip.label=FALSE, show.node.label=FALSE, no.margin=TRUE)
+coord <- get("last_plot.phylo", envir=ape:::.PlotPhyloEnv)
+grDevices::dev.off()
+unlink(tmp_pdf)
+xx <- coord$xx; yy <- coord$yy
+raw_min <- min(yy[seq_len(NTIP)]); raw_max <- max(yy[seq_len(NTIP)])
+if (raw_max == raw_min) stop("Tree tip coordinates have zero range.")
+tree_y_scaled <- 0.090 + ((yy-raw_min)/(raw_max-raw_min))*0.810
+xn <- (xx-min(xx))/(max(xx)-min(xx))
+tree_x <- 0.025 + (xn^1.45)*0.235
+master_tree_y <- vapply(
+  master_keys,
+  function(k) tree_y_scaled[match(k, tree_keys)],
+  numeric(1)
 )
-
-
-# ================================================================================
-# 28. TREE COORDINATES
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("CALCULATING TREE COORDINATES\n")
-cat("============================================================\n")
-
-tmp_pdf <- tempfile(
-  fileext = ".pdf"
-)
-
-pdf(
-  tmp_pdf,
-  width = 10,
-  height = 12
-)
-
-plot.phylo(
-  tr,
-  type = "phylogram",
-  direction = "rightwards",
-  use.edge.length = TRUE,
-  show.tip.label = FALSE,
-  show.node.label = FALSE,
-  no.margin = TRUE
-)
-
-coord <- get(
-  "last_plot.phylo",
-  envir = ape:::.PlotPhyloEnv
-)
-
-dev.off()
-
-unlink(
-  tmp_pdf
-)
-
-xx <- coord$xx
-yy <- coord$yy
-
-
-# ================================================================================
-# 29. NORMALIZE TREE Y
-# ================================================================================
-
-tree_tip_y <- yy[
-  seq_len(NTIP)
-]
-
-raw_min <- min(tree_tip_y)
-raw_max <- max(tree_tip_y)
-
-tree_y_scaled <- numeric(
-  NTOTAL
-)
-
-for (
-  i in seq_len(
-    NTOTAL
-  )
-) {
-
-  tree_y_scaled[i] <-
-    0.900 -
-    (
-      (
-        yy[i] -
-          raw_min
-      ) /
-        (
-          raw_max -
-            raw_min
-        )
-    ) *
-      0.810
-
-}
-
-
-# ================================================================================
-# 30. TREE X
-# ================================================================================
-
-xmin_tree <- min(xx)
-xmax_tree <- max(xx)
-
-xn <- (
-  xx -
-    xmin_tree
-) /
-  (
-    xmax_tree -
-      xmin_tree
-  )
-
-xn <- xn ^ 1.45
-
-tree_x <-
-  0.025 +
-  xn * 0.235
-
-
-# ================================================================================
-# 31. MASTER TREE Y
-# ================================================================================
-
-master_tree_y <- numeric(
-  length(master_order)
-)
-
-for (
-  i in seq_along(
-    master_order
-  )
-) {
-
-  idx <- match(
-    master_keys[i],
-    tree_keys
-  )
-
-  master_tree_y[i] <-
-    tree_y_scaled[idx]
-
-}
-
 N <- length(master_order)
 
+# ---- ONE SHARED TOP-TO-BOTTOM ORDER FOR ALL PANELS -----------------------------
+# The phylogeny determines the visible row order. Each input was already matched
+# by normalized genome ID; now apply one common tree-derived order to names,
+# all feature rows, category matrices, and y-coordinates.
+tree_plot_order <- order(master_tree_y, decreasing = TRUE)
 
-# ================================================================================
-# 32. CAFE FORMAT
-# ================================================================================
+master_order <- master_order[tree_plot_order]
+master_keys <- master_keys[tree_plot_order]
+dat <- dat[tree_plot_order, , drop = FALSE]
+plot_dat <- plot_dat[tree_plot_order, , drop = FALSE]
+master_tree_y <- master_tree_y[tree_plot_order]
 
-format_change <- function(z) {
+rownames(dat) <- NULL
+rownames(plot_dat) <- NULL
 
-  paste0(
-    "+",
-    format(
-      z$Increase,
-      big.mark = ",",
-      scientific = FALSE,
-      trim = TRUE
-    ),
-    " / -",
-    format(
-      z$Decrease,
-      big.mark = ",",
-      scientific = FALSE,
-      trim = TRUE
-    )
-  )
+# Save the CSV in the same top-to-bottom order used for the figure.
+write.csv(dat, DATA_FILE, row.names = FALSE, na = "NA")
+tnw1_row <- which(dat$Key == normalize_genome("TNW1"))
 
+# Hard checks: all labels and all eight category panels share row identity.
+stopifnot(
+  length(master_order) == 36,
+  length(master_keys) == 36,
+  nrow(dat) == 36,
+  nrow(plot_dat) == 36,
+  identical(dat$Genome, master_order),
+  identical(dat$Key, master_keys),
+  all(diff(master_tree_y) < 0),
+  length(tnw1_row) == 1
+)
+
+cat("\nFINAL DISPLAY ORDER — ACTUAL TREE, TOP TO BOTTOM:\n")
+print(data.frame(
+  Position = seq_len(N),
+  Genome = master_order,
+  Tree_Y = master_tree_y
+), row.names = FALSE)
+
+# ---- 12. DRAWING HELPERS ------------------------------------------------------
+draw_pie <- function(x,y,expansion,contraction,radius=0.009) {
+  total <- expansion+contraction
+  if (!is.finite(total) || total<=0) return(invisible(NULL))
+  prop <- expansion/total
+  th1 <- seq(0,2*pi*prop,length.out=80)
+  polygon(c(x,x+radius*cos(th1)),c(y,y+radius*sin(th1)),
+          col=EXPANSION,border="white",lwd=.5)
+  th2 <- seq(2*pi*prop,2*pi,length.out=80)
+  polygon(c(x,x+radius*cos(th2)),c(y,y+radius*sin(th2)),
+          col=CONTRACTION,border="white",lwd=.5)
+  th <- seq(0,2*pi,length.out=80)
+  lines(x+radius*cos(th),y+radius*sin(th),col="white",lwd=.6)
 }
-
-
-# ================================================================================
-# 33. CAFE PIE
-# ================================================================================
-
-draw_pie <- function(
-    x,
-    y,
-    expansion,
-    contraction,
-    radius = 0.009
-) {
-
-  total <-
-    expansion +
-    contraction
-
-  if (
-    !is.finite(total) ||
-    total <= 0
-  ) {
-
-    return(
-      invisible(NULL)
-    )
-
+draw_feature_bar <- function(value,x_left,x_right,y,height,fill,max_value) {
+  rect(x_left,y-height/2,x_right,y+height/2,col="#EEEEEE",border=NA)
+  if (is.finite(value) && value>0 && max_value>0) {
+    vx <- x_left+(value/max_value)*(x_right-x_left)
+    rect(x_left,y-height/2,vx,y+height/2,col=fill,border=NA)
   }
-
-  prop <-
-    expansion /
-    total
-
-  theta1 <- seq(
-    0,
-    2 * pi * prop,
-    length.out = 80
-  )
-
-  polygon(
-    c(
-      x,
-      x +
-        radius *
-        cos(theta1)
-    ),
-    c(
-      y,
-      y +
-        radius *
-        sin(theta1)
-    ),
-    col = EXPANSION,
-    border = "white",
-    lwd = 0.5
-  )
-
-  theta2 <- seq(
-    2 * pi * prop,
-    2 * pi,
-    length.out = 80
-  )
-
-  polygon(
-    c(
-      x,
-      x +
-        radius *
-        cos(theta2)
-    ),
-    c(
-      y,
-      y +
-        radius *
-        sin(theta2)
-    ),
-    col = CONTRACTION,
-    border = "white",
-    lwd = 0.5
-  )
-
-  theta3 <- seq(
-    0,
-    2 * pi,
-    length.out = 80
-  )
-
-  lines(
-    x +
-      radius *
-      cos(theta3),
-    y +
-      radius *
-      sin(theta3),
-    col = "white",
-    lwd = 0.6
-  )
-
 }
-
-
-# ================================================================================
-# 34. FEATURE BAR
-# ================================================================================
-
-draw_feature_bar <- function(
-    value,
-    x_left,
-    x_right,
-    y,
-    height,
-    fill,
-    max_value
-) {
-
-  rect(
-    x_left,
-    y - height / 2,
-    x_right,
-    y + height / 2,
-    col = "#EEEEEE",
-    border = NA
-  )
-
-  if (
-    is.finite(value) &&
-    value > 0 &&
-    max_value > 0
-  ) {
-
-    value_x <-
-      x_left +
-      (
-        value /
-          max_value
-      ) *
-        (
-          x_right -
-            x_left
-        )
-
-    rect(
-      x_left,
-      y - height / 2,
-      value_x,
-      y + height / 2,
-      col = fill,
-      border = NA
-    )
-
-  }
-
-}
-
-
-# ================================================================================
-# 35. STACKED BAR
-# ================================================================================
-
-draw_stacked_bar <- function(
-    values,
-    colors,
-    x_left,
-    x_right,
-    y,
-    height,
-    max_total
-) {
-
-  rect(
-    x_left,
-    y - height / 2,
-    x_right,
-    y + height / 2,
-    col = "#EEEEEE",
-    border = NA
-  )
-
-  total <- sum(
-    values,
-    na.rm = TRUE
-  )
-
-  if (
-    !is.finite(total) ||
-    total <= 0 ||
-    max_total <= 0
-  ) {
-
-    return(
-      invisible(NULL)
-    )
-
-  }
-
+draw_stacked_bar <- function(values,colors,x_left,x_right,y,height,max_total) {
+  rect(x_left,y-height/2,x_right,y+height/2,col="#EEEEEE",border=NA)
+  values[!is.finite(values) | values<0] <- 0
+  if (sum(values)<=0 || max_total<=0) return(invisible(NULL))
   xpos <- x_left
-
-  for (
-    i in seq_along(values)
-  ) {
-
-    v <- values[i]
-
-    if (
-      !is.finite(v) ||
-      v <= 0
-    ) {
-      next
-    }
-
-    xnext <-
-      xpos +
-      (
-        v /
-          max_total
-      ) *
-        (
-          x_right -
-            x_left
-        )
-
-    rect(
-      xpos,
-      y - height / 2,
-      xnext,
-      y + height / 2,
-      col = colors[i],
-      border = NA
-    )
-
+  for (i in seq_along(values)) {
+    if (values[i]<=0) next
+    xnext <- xpos+(values[i]/max_total)*(x_right-x_left)
+    rect(xpos,y-height/2,xnext,y+height/2,col=colors[i],border=NA)
     xpos <- xnext
-
   }
-
+}
+draw_ticks <- function(max_value,x_left,x_right,y_axis,percent=FALSE) {
+  if (!is.finite(max_value) || max_value<=0) return(invisible(NULL))
+  ticks <- pretty(c(0,max_value),n=3)
+  ticks <- ticks[ticks>=0 & ticks<=max_value]
+  for (v in ticks) {
+    xpos <- x_left+(v/max_value)*(x_right-x_left)
+    segments(xpos,y_axis,xpos,y_axis-.008,col="#444444",lwd=.7)
+    lab <- if (percent) paste0(format(v,trim=TRUE),"%") else
+      format(v,trim=TRUE,big.mark=",",scientific=FALSE)
+    text(xpos,y_axis-.017,lab,cex=CE_AXIS,font=2,col=TEXTCOL)
+  }
 }
 
+# All eight panels below use plot_dat AFTER the shared tree-order sort.\n# ---- 13. PANEL POSITIONS / SCALE MAXIMA ---------------------------------------
+TREE_LEFT <- .020; TREE_RIGHT <- .245
+INTERNAL_VALUE_X <- .265; TIP_PIE_X <- .300; TIP_VALUE_X <- .323
+NAME_LEFT <- .365
+PANEL_START <- .535; PANEL_WIDTH <- .047; PANEL_GAP <- .008
+P <- PANEL_START + (0:7)*(PANEL_WIDTH+PANEL_GAP)
+R <- P+PANEL_WIDTH
 
-# ================================================================================
-# 36. AXIS TICKS
-# ================================================================================
-
-draw_ticks <- function(
-    max_value,
-    x_left,
-    x_right,
-    y_axis,
-    percent = FALSE
-) {
-
-  if (
-    !is.finite(max_value) ||
-    max_value <= 0
-  ) {
-    return()
-  }
-
-  ticks <- pretty(
-    c(
-      0,
-      max_value
-    ),
-    n = 3
-  )
-
-  ticks <-
-    ticks[
-      ticks >= 0 &
-        ticks <= max_value
-    ]
-
-  for (
-    v in ticks
-  ) {
-
-    xpos <-
-      x_left +
-      (
-        v /
-          max_value
-      ) *
-        (
-          x_right -
-            x_left
-        )
-
-    segments(
-      xpos,
-      y_axis,
-      xpos,
-      y_axis - 0.008,
-      col = "#444444",
-      lwd = 0.7
-    )
-
-    lab <-
-      if (percent) {
-
-        paste0(
-          format(
-            v,
-            trim = TRUE
-          ),
-          "%"
-        )
-
-      } else {
-
-        format(
-          v,
-          trim = TRUE,
-          big.mark = ",",
-          scientific = FALSE
-        )
-
-      }
-
-    text(
-      xpos,
-      y_axis - 0.017,
-      lab,
-      cex = CE_AXIS,
-      font = FONT_AXIS,
-      col = TEXTCOL
-    )
-
-  }
-
+safe_max <- function(x, multiplier=1.10) {
+  z <- x[is.finite(x)]
+  if (!length(z) || max(z)<=0) 1 else max(z)*multiplier
 }
-
-
-# ================================================================================
-# 37. PANEL POSITIONS
-# ================================================================================
-
-TREE_LEFT  <- 0.020
-TREE_RIGHT <- 0.245
-
-INTERNAL_VALUE_X <- 0.265
-
-TIP_PIE_X   <- 0.300
-TIP_VALUE_X <- 0.323
-
-NAME_LEFT <- 0.365
-
-
-# ----------------------------------------------------------------
-# IMPORTANT:
-# More room for genome names.
-# Feature panels start later.
-# ----------------------------------------------------------------
-
-PANEL_START <- 0.535
-
-PANEL_WIDTH <- 0.047
-
-PANEL_GAP <- 0.008
-
-
-P1 <- PANEL_START
-
-P2 <- P1 + PANEL_WIDTH + PANEL_GAP
-
-P3 <- P2 + PANEL_WIDTH + PANEL_GAP
-
-P4 <- P3 + PANEL_WIDTH + PANEL_GAP
-
-P5 <- P4 + PANEL_WIDTH + PANEL_GAP
-
-P6 <- P5 + PANEL_WIDTH + PANEL_GAP
-
-P7 <- P6 + PANEL_WIDTH + PANEL_GAP
-
-P8 <- P7 + PANEL_WIDTH + PANEL_GAP
-
-
-R1 <- P1 + PANEL_WIDTH
-R2 <- P2 + PANEL_WIDTH
-R3 <- P3 + PANEL_WIDTH
-R4 <- P4 + PANEL_WIDTH
-R5 <- P5 + PANEL_WIDTH
-R6 <- P6 + PANEL_WIDTH
-R7 <- P7 + PANEL_WIDTH
-R8 <- P8 + PANEL_WIDTH
-
-
-# ================================================================================
-# 38. INTERNAL CAFE LABELS
-# ================================================================================
-
-internal_nodes <-
-  (
-    NTIP + 1
-  ):NTOTAL
-
-internal_nodes <-
-  internal_nodes[
-    vapply(
-      internal_nodes,
-      function(node) {
-
-        !is.null(
-          get_cafe(node)
-        )
-
-      },
-      logical(1)
-    )
-  ]
-
-INTERNAL_RADIUS <- 0.0085
-
-internal_x <-
-  tree_x[
-    internal_nodes
-  ]
-
-internal_y <-
-  tree_y_scaled[
-    internal_nodes
-  ]
-
-
-# ----------------------------------------------------------------
-# KEEP CAFE VALUES CLOSE TO THEIR PIE
-# BUT DO NOT TOUCH PIE OR OTHER VALUES
-# ----------------------------------------------------------------
-
-label_x <-
-  pmin(
-    internal_x +
-      INTERNAL_RADIUS +
-      0.006,
-    INTERNAL_VALUE_X -
-      0.006
-  )
-
-label_y <-
-  internal_y
-
-
-ord <- order(
-  label_y
-)
-
-MIN_GAP <- 0.017
-
-if (length(ord) > 1) {
-
-  for (
-    k in 2:length(ord)
-  ) {
-
-    a <- ord[k - 1]
-    b <- ord[k]
-
-    if (
-      label_y[b] -
-        label_y[a]
-      <
-      MIN_GAP
-    ) {
-
-      label_y[b] <-
-        label_y[a] +
-        MIN_GAP
-
-    }
-
-  }
-
-}
-
-label_y <-
-  pmin(
-    label_y,
-    0.905
-  )
-
-label_y <-
-  pmax(
-    label_y,
-    0.075
-  )
-
-
-# ================================================================================
-# 39. FEATURE MAXIMUMS
-# ================================================================================
-
-max_genome <-
-  max(
-    dat$Genome_size_Mb,
-    na.rm = TRUE
-  ) * 1.10
-
-max_te <-
-  max(
-    dat$TE,
-    na.rm = TRUE
-  ) * 1.10
-
-max_rip <-
-  max(
-    dat$RIP,
-    na.rm = TRUE
-  ) * 1.10
-
-max_lrar <-
-  max(
-    dat$LRAR,
-    na.rm = TRUE
-  ) * 1.10
-
-max_overlap <-
-  max(
-    dat$TE_RIP_overlap,
-    na.rm = TRUE
-  ) * 1.10
-
-max_bgc <-
-  max(
-    dat$Total_BGC,
-    na.rm = TRUE
-  ) * 1.10
-
-
-anti_matrix <- dat[
-  ,
-  c(
-    "NRPS",
-    "PKS",
-    "Hybrid",
-    "Terpene",
-    "Other_BGC"
-  )
-]
-
-anti_max <-
-  max(
-    rowSums(
-      anti_matrix,
-      na.rm = TRUE
-    ),
-    na.rm = TRUE
-  ) * 1.10
-
-
-dbcan_matrix <- dat[
-  ,
-  c(
-    "GH",
-    "GT",
-    "CE",
-    "PL",
-    "AA",
-    "CBM"
-  )
-]
-
-dbcan_max <-
-  max(
-    rowSums(
-      dbcan_matrix,
-      na.rm = TRUE
-    ),
-    na.rm = TRUE
-  ) * 1.10
-
-
-# ================================================================================
-# 40. MAIN PLOT
-# ================================================================================
-
+max_genome <- safe_max(plot_dat$Genome_size_Mb)
+max_te <- safe_max(plot_dat$TE); max_rip <- safe_max(plot_dat$RIP)
+max_lrar <- safe_max(plot_dat$LRAR); max_overlap <- safe_max(plot_dat$TE_RIP_overlap)
+max_bgc <- safe_max(plot_dat$Total_BGC)
+anti_matrix <- as.matrix(plot_dat[,c("NRPS","PKS","Hybrid","Terpene","Other_BGC")])
+dbcan_matrix <- as.matrix(plot_dat[,c("GH","GT","CE","PL","AA","CBM")])
+anti_max <- safe_max(rowSums(anti_matrix,na.rm=TRUE))
+dbcan_max <- safe_max(rowSums(dbcan_matrix,na.rm=TRUE))
+
+# ---- 14. PLOT FUNCTION --------------------------------------------------------
 plot_integrated_figure <- function() {
+  plot(NA,NA,type="n",xlim=c(0,1),ylim=c(0,1),axes=FALSE,xlab="",ylab="")
 
-  plot(
-    NA,
-    NA,
-    type = "n",
-    xlim = c(
-      0,
-      1
-    ),
-    ylim = c(
-      0,
-      1
-    ),
-    axes = FALSE,
-    xlab = "",
-    ylab = ""
-  )
-
-
-  # ============================================================================
-  # TREE HORIZONTAL BRANCHES
-  # ============================================================================
-
-  for (
-    i in seq_len(
-      nrow(
-        tr$edge
-      )
-    )
-  ) {
-
-    parent <- tr$edge[i, 1]
-    child  <- tr$edge[i, 2]
-
-    segments(
-      tree_x[parent],
-      tree_y_scaled[child],
-      tree_x[child],
-      tree_y_scaled[child],
-      col = TREECOL,
-      lwd = 1.15
-    )
-
+  # Tree horizontal branches
+  for (i in seq_len(nrow(tr$edge))) {
+    parent <- tr$edge[i,1]; child <- tr$edge[i,2]
+    segments(tree_x[parent],tree_y_scaled[child],tree_x[child],tree_y_scaled[child],
+             col=TREECOL,lwd=1.15)
+  }
+  # Tree vertical branches
+  for (p in unique(tr$edge[,1])) {
+    children <- tr$edge[tr$edge[,1]==p,2]
+    if (length(children)>=2)
+      segments(tree_x[p],min(tree_y_scaled[children]),tree_x[p],
+               max(tree_y_scaled[children]),col=TREECOL,lwd=1.15)
   }
 
-
-  # ============================================================================
-  # TREE VERTICAL BRANCHES
-  # ============================================================================
-
-  parents <- unique(
-    tr$edge[, 1]
-  )
-
-  for (
-    p in parents
-  ) {
-
-    children <-
-      tr$edge[
-        tr$edge[, 1] == p,
-        2
-      ]
-
-    if (
-      length(children) >= 2
-    ) {
-
-      segments(
-        tree_x[p],
-        min(
-          tree_y_scaled[
-            children
-          ]
-        ),
-        tree_x[p],
-        max(
-          tree_y_scaled[
-            children
-          ]
-        ),
-        col = TREECOL,
-        lwd = 1.15
-      )
-
-    }
-
+  internal_nodes <- (NTIP+1):NTOTAL
+  internal_nodes <- internal_nodes[vapply(internal_nodes,function(n) !is.null(get_cafe(n)),logical(1))]
+  ir <- .0085
+  ix <- tree_x[internal_nodes]; iy <- tree_y_scaled[internal_nodes]
+  lx <- pmin(ix+ir+.006,INTERNAL_VALUE_X-.006); ly <- iy
+  ord <- order(ly); min_gap <- .017
+  if (length(ord)>1) for (k in 2:length(ord)) {
+    a <- ord[k-1]; b <- ord[k]
+    if (ly[b]-ly[a]<min_gap) ly[b] <- ly[a]+min_gap
+  }
+  ly <- pmax(.075,pmin(ly,.905))
+  for (n in internal_nodes) {
+    z <- get_cafe(n)
+    draw_pie(tree_x[n],tree_y_scaled[n],z$Increase,z$Decrease,radius=ir)
+  }
+  for (i in seq_along(internal_nodes)) {
+    segments(ix[i]+ir,iy[i],lx[i]-.004,ly[i],col=LEADERCOL,lwd=.45)
+    text(lx[i],ly[i],format_change(get_cafe(internal_nodes[i])),
+         adj=c(0,.5),cex=CE_INTERNAL_VALUE,font=2,col=TEXTCOL)
   }
 
+  text(TIP_PIE_X,.952,"CAFE5",font=2,cex=CE_HEADER,col=TEXTCOL)
+  text(TIP_VALUE_X,.952,"Expansion / Contraction",font=2,cex=.52,
+       adj=c(0,.5),col=TEXTCOL)
+  text(NAME_LEFT,.952,"Fusarium genome",font=2,cex=CE_HEADER,
+       adj=c(0,.5),col=TEXTCOL)
 
-  # ============================================================================
-  # INTERNAL CAFE PIES
-  # ============================================================================
-
-  for (
-    node in internal_nodes
-  ) {
-
-    z <- get_cafe(node)
-
-    draw_pie(
-      tree_x[node],
-      tree_y_scaled[node],
-      z$Increase,
-      z$Decrease,
-      radius = INTERNAL_RADIUS
-    )
-
-  }
-
-
-  # ============================================================================
-  # INTERNAL CAFE LEADER LINES + VALUES
-  # ============================================================================
-
-  for (
-    i in seq_along(
-      internal_nodes
-    )
-  ) {
-
-    segments(
-      internal_x[i] +
-        INTERNAL_RADIUS,
-      internal_y[i],
-      label_x[i] -
-        0.004,
-      label_y[i],
-      col = LEADERCOL,
-      lwd = 0.45
-    )
-
-    z <- get_cafe(
-      internal_nodes[i]
-    )
-
-    text(
-      label_x[i],
-      label_y[i],
-      format_change(z),
-      adj = c(
-        0,
-        0.5
-      ),
-      cex = CE_INTERNAL_VALUE,
-      font = FONT_VALUE,
-      col = TEXTCOL
-    )
-
-  }
-
-
-  # ============================================================================
-  # CAFE HEADER
-  # ============================================================================
-
-  text(
-    TIP_PIE_X,
-    0.952,
-    "CAFE5",
-    font = FONT_HEADER,
-    cex = CE_HEADER,
-    col = TEXTCOL
-  )
-
-  text(
-    TIP_VALUE_X,
-    0.952,
-    "Expansion / Contraction",
-    font = FONT_HEADER,
-    cex = 0.52,
-    adj = c(
-      0,
-      0.5
-    ),
-    col = TEXTCOL
-  )
-
-
-  # ============================================================================
-  # GENOME HEADER
-  # ============================================================================
-
-  text(
-    NAME_LEFT,
-    0.952,
-    "Fusarium genome",
-    font = FONT_HEADER,
-    cex = CE_HEADER,
-    adj = c(
-      0,
-      0.5
-    ),
-    col = TEXTCOL
-  )
-
-
-  # ============================================================================
-  # TIP CAFE + GENOME NAMES
-  # ============================================================================
-
-  for (
-    i in seq_len(N)
-  ) {
-
-    tree_tip <-
-      match(
-        master_keys[i],
-        tree_keys
-      )
-
-    z <- get_cafe(
-      tree_tip
-    )
-
-
-    # --------------------------------------------------------------------------
-    # TIP CAFE PIE
-    # --------------------------------------------------------------------------
-
+  # Tips are always drawn in master_order, mapped to tree tip IDs by normalized key.
+  for (i in seq_len(N)) {
+    tree_tip <- match(master_keys[i],tree_keys)
+    z <- get_cafe(tree_tip)
     if (!is.null(z)) {
-
-      draw_pie(
-        TIP_PIE_X,
-        master_tree_y[i],
-        z$Increase,
-        z$Decrease,
-        radius = 0.010
-      )
-
-
-      # ------------------------------------------------------------------------
-      # TIP CAFE VALUE
-      # ------------------------------------------------------------------------
-
-      text(
-        TIP_VALUE_X,
-        master_tree_y[i],
-        format_change(z),
-        adj = c(
-          0,
-          0.5
-        ),
-        cex = CE_CAFE_VALUE,
-        font = FONT_VALUE,
-        col = TEXTCOL
-      )
-
+      draw_pie(TIP_PIE_X,master_tree_y[i],z$Increase,z$Decrease,radius=.010)
+      text(TIP_VALUE_X,master_tree_y[i],format_change(z),adj=c(0,.5),
+           cex=CE_CAFE_VALUE,font=2,col=TEXTCOL)
     }
-
-
-    # --------------------------------------------------------------------------
-    # GENOME NAME
-    # --------------------------------------------------------------------------
-
-    text(
-      NAME_LEFT,
-      master_tree_y[i],
-      master_order[i],
-      adj = c(
-        0,
-        0.5
-      ),
-      font = FONT_GENOME,
-      cex = CE_GENOME,
-      col = TEXTCOL
-    )
-
+    text(NAME_LEFT,master_tree_y[i],master_order[i],adj=c(0,.5),
+         font=2,cex=CE_GENOME,col=TEXTCOL)
   }
 
+  title_y <- .952
+  panel_title <- function(x,label,cex=CE_PANEL_TITLE)
+    text(x,title_y,label,font=2,cex=cex,col=TEXTCOL)
+  panel_title(mean(c(P[1],R[1])),"Genome\nsize")
+  panel_title(mean(c(P[2],R[2])),"TE")
+  panel_title(mean(c(P[3],R[3])),"RIP")
+  panel_title(mean(c(P[4],R[4])),"LRAR")
+  panel_title(mean(c(P[5],R[5])),"TE–RIP")
+  panel_title(mean(c(P[6],R[6])),"BGC")
+  panel_title(mean(c(P[7],R[7])),"antiSMASH")
+  panel_title(mean(c(P[8],R[8])),"dbCAN3")
 
-  # ============================================================================
-  # PANEL TITLES
-  # ============================================================================
-
-  title_y <- 0.952
-
-  panel_title <- function(
-      x,
-      title,
-      cex = CE_PANEL_TITLE
-  ) {
-
-    text(
-      x,
-      title_y,
-      title,
-      font = FONT_HEADER,
-      cex = cex,
-      col = TEXTCOL
-    )
-
-  }
-
-
-  panel_title(
-    (P1 + R1) / 2,
-    "Genome\nsize"
-  )
-
-  panel_title(
-    (P2 + R2) / 2,
-    "TE"
-  )
-
-  panel_title(
-    (P3 + R3) / 2,
-    "RIP"
-  )
-
-  panel_title(
-    (P4 + R4) / 2,
-    "LRAR"
-  )
-
-  panel_title(
-    (P5 + R5) / 2,
-    "TE–RIP"
-  )
-
-  panel_title(
-    (P6 + R6) / 2,
-    "BGC"
-  )
-
-  panel_title(
-    (P7 + R7) / 2,
-    "antiSMASH"
-  )
-
-  panel_title(
-    (P8 + R8) / 2,
-    "dbCAN3"
-  )
-
-
-  # ============================================================================
-  # BAR HEIGHT
-  # ============================================================================
-
-  BAR_HEIGHT <- 0.011
-
-
-  # ============================================================================
-  # FEATURE BARS
-  # ============================================================================
-
-  for (
-    i in seq_len(N)
-  ) {
-
+  bh <- .011
+  for (i in seq_len(N)) {
     y <- master_tree_y[i]
-
-
-    # --------------------------------------------------------------------------
-    # GENOME SIZE
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$Genome_size_Mb[i],
-      P1,
-      R1,
-      y,
-      BAR_HEIGHT,
-      COL_GENOME,
-      max_genome
-    )
-
-
-    # --------------------------------------------------------------------------
-    # TE
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$TE[i],
-      P2,
-      R2,
-      y,
-      BAR_HEIGHT,
-      COL_TE,
-      max_te
-    )
-
-
-    # --------------------------------------------------------------------------
-    # RIP
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$RIP[i],
-      P3,
-      R3,
-      y,
-      BAR_HEIGHT,
-      COL_RIP,
-      max_rip
-    )
-
-
-    # --------------------------------------------------------------------------
-    # LRAR
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$LRAR[i],
-      P4,
-      R4,
-      y,
-      BAR_HEIGHT,
-      COL_LRAR,
-      max_lrar
-    )
-
-
-    # --------------------------------------------------------------------------
-    # TE-RIP OVERLAP
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$TE_RIP_overlap[i],
-      P5,
-      R5,
-      y,
-      BAR_HEIGHT,
-      COL_OVERLAP,
-      max_overlap
-    )
-
-
-    # --------------------------------------------------------------------------
-    # TOTAL BGC
-    # --------------------------------------------------------------------------
-
-    draw_feature_bar(
-      dat$Total_BGC[i],
-      P6,
-      R6,
-      y,
-      BAR_HEIGHT,
-      COL_BGC,
-      max_bgc
-    )
-
-
-    # --------------------------------------------------------------------------
-    # antiSMASH
-    # --------------------------------------------------------------------------
-
-    anti_values <- c(
-
-      dat$NRPS[i],
-      dat$PKS[i],
-      dat$Hybrid[i],
-      dat$Terpene[i],
-      dat$Other_BGC[i]
-
-    )
-
-    draw_stacked_bar(
-      anti_values,
-      ANTISMASH_COLORS,
-      P7,
-      R7,
-      y,
-      BAR_HEIGHT,
-      anti_max
-    )
-
-
-    # --------------------------------------------------------------------------
-    # dbCAN3
-    # --------------------------------------------------------------------------
-
-    dbcan_values <- c(
-
-      dat$GH[i],
-      dat$GT[i],
-      dat$CE[i],
-      dat$PL[i],
-      dat$AA[i],
-      dat$CBM[i]
-
-    )
-
-    draw_stacked_bar(
-      dbcan_values,
-      DBCAN_COLORS,
-      P8,
-      R8,
-      y,
-      BAR_HEIGHT,
-      dbcan_max
-    )
-
+    draw_feature_bar(plot_dat$Genome_size_Mb[i],P[1],R[1],y,bh,COL_GENOME,max_genome)
+    draw_feature_bar(plot_dat$TE[i],P[2],R[2],y,bh,COL_TE,max_te)
+    draw_feature_bar(plot_dat$RIP[i],P[3],R[3],y,bh,COL_RIP,max_rip)
+    draw_feature_bar(plot_dat$LRAR[i],P[4],R[4],y,bh,COL_LRAR,max_lrar)
+    draw_feature_bar(plot_dat$TE_RIP_overlap[i],P[5],R[5],y,bh,COL_OVERLAP,max_overlap)
+    draw_feature_bar(plot_dat$Total_BGC[i],P[6],R[6],y,bh,COL_BGC,max_bgc)
+    draw_stacked_bar(as.numeric(anti_matrix[i,]),ANTISMASH_COLORS,P[7],R[7],y,bh,anti_max)
+    draw_stacked_bar(as.numeric(dbcan_matrix[i,]),DBCAN_COLORS,P[8],R[8],y,bh,dbcan_max)
   }
 
+  axis_y <- .050
+  draw_ticks(max_genome,P[1],R[1],axis_y,FALSE)
+  draw_ticks(max_te,P[2],R[2],axis_y,TRUE)
+  draw_ticks(max_rip,P[3],R[3],axis_y,TRUE)
+  draw_ticks(max_lrar,P[4],R[4],axis_y,TRUE)
+  draw_ticks(max_overlap,P[5],R[5],axis_y,TRUE)
+  draw_ticks(max_bgc,P[6],R[6],axis_y,FALSE)
+  draw_ticks(anti_max,P[7],R[7],axis_y,FALSE)
+  draw_ticks(dbcan_max,P[8],R[8],axis_y,FALSE)
 
-  # ============================================================================
-  # AXES
-  # ============================================================================
-
-  axis_y <- 0.050
-
-  draw_ticks(
-    max_genome,
-    P1,
-    R1,
-    axis_y,
-    FALSE
-  )
-
-  draw_ticks(
-    max_te,
-    P2,
-    R2,
-    axis_y,
-    TRUE
-  )
-
-  draw_ticks(
-    max_rip,
-    P3,
-    R3,
-    axis_y,
-    TRUE
-  )
-
-  draw_ticks(
-    max_lrar,
-    P4,
-    R4,
-    axis_y,
-    TRUE
-  )
-
-  draw_ticks(
-    max_overlap,
-    P5,
-    R5,
-    axis_y,
-    TRUE
-  )
-
-  draw_ticks(
-    max_bgc,
-    P6,
-    R6,
-    axis_y,
-    FALSE
-  )
-
-  draw_ticks(
-    anti_max,
-    P7,
-    R7,
-    axis_y,
-    FALSE
-  )
-
-  draw_ticks(
-    dbcan_max,
-    P8,
-    R8,
-    axis_y,
-    FALSE
-  )
-
-
-  # ============================================================================
-  # CAFE LEGEND — TOP LEFT OF FIGURE
-  # ============================================================================
-
-  legend(
-    "topleft",
-    inset = c(
-      0.005,
-      0.005
-    ),
-    legend = c(
-      "Expansion",
-      "Contraction"
-    ),
-    pch = 15,
-    col = c(
-      EXPANSION,
-      CONTRACTION
-    ),
-    pt.cex = 1.0,
-    bty = "n",
-    cex = CE_LEGEND,
-    text.font = FONT_LEGEND,
-    horiz = TRUE,
-    x.intersp = 0.5
-  )
-
-
-  # ============================================================================
-  # antiSMASH SHORT LEGEND
-  # ============================================================================
-  #
-  # SEPARATE FROM dbCAN3
-  # ============================================================================
-
-  legend(
-    "bottom",
-    inset = c(
-      0,
-      -0.055
-    ),
-    legend = c(
-      "NRPS",
-      "PKS",
-      "Hybrid",
-      "TER",
-      "Other"
-    ),
-    fill = ANTISMASH_COLORS,
-    border = NA,
-    bty = "n",
-    horiz = TRUE,
-    cex = CE_LEGEND,
-    text.font = FONT_LEGEND,
-    x.intersp = 0.40
-  )
-
-
-  # ============================================================================
-  # dbCAN3 SHORT LEGEND
-  # ============================================================================
-  #
-  # PLACED ABOVE ANOTHER LINE SO IT DOES NOT MIX WITH antiSMASH
-  # ============================================================================
-
-  legend(
-    "bottom",
-    inset = c(
-      0,
-      -0.092
-    ),
-    legend = c(
-      "GH",
-      "GT",
-      "CE",
-      "PL",
-      "AA",
-      "CBM"
-    ),
-    fill = DBCAN_COLORS,
-    border = NA,
-    bty = "n",
-    horiz = TRUE,
-    cex = CE_LEGEND,
-    text.font = FONT_LEGEND,
-    x.intersp = 0.35
-  )
-
-
-  # ============================================================================
-  # FOOTNOTE
-  # ============================================================================
-
-  text(
-    0.020,
-    0.012,
-    "CAFE5: gene-family expansion/contraction; bars: genome-level features; stacked bars: antiSMASH BGC and dbCAN3 CAZyme composition.",
-    adj = c(
-      0,
-      0.5
-    ),
-    cex = CE_FOOT,
-    font = FONT_FOOT,
-    col = "#555555"
-  )
-
+  legend("topleft",inset=c(.005,.005),legend=c("Expansion","Contraction"),
+         pch=15,col=c(EXPANSION,CONTRACTION),pt.cex=1,bty="n",
+         cex=CE_LEGEND,text.font=2,horiz=TRUE,x.intersp=.5)
+  legend("bottom",inset=c(0,-.055),legend=c("NRPS","PKS","Hybrid","TER","Other"),
+         fill=ANTISMASH_COLORS,border=NA,bty="n",horiz=TRUE,
+         cex=CE_LEGEND,text.font=2,x.intersp=.40)
+  legend("bottom",inset=c(0,-.092),legend=c("GH","GT","CE","PL","AA","CBM"),
+         fill=DBCAN_COLORS,border=NA,bty="n",horiz=TRUE,
+         cex=CE_LEGEND,text.font=2,x.intersp=.35)
+  text(.020,.012,
+       "CAFE5: gene-family expansion/contraction; bars: genome-level features; stacked bars: antiSMASH BGC and dbCAN3 CAZyme composition.",
+       adj=c(0,.5),cex=CE_FOOT,font=1,col="#555555")
 }
 
-
-# ================================================================================
-# 41. PNG
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("CREATING PNG\n")
-cat("============================================================\n")
-
-png(
-  PNG_FILE,
-  width = 10000,
-  height = 6000,
-  res = 600,
-  type = "cairo"
-)
-
-par(
-  mar = c(
-    1,
-    1,
-    1,
-    1
-  ),
-  xpd = TRUE,
-  family = "sans"
-)
-
+# ---- 15. EXPORT PNG / PDF / TIFF ----------------------------------------------
+grDevices::png(PNG_FILE,width=10000,height=6000,res=600,type="cairo")
+par(mar=c(1,1,1,1),xpd=TRUE,family="sans")
 plot_integrated_figure()
+grDevices::dev.off()
 
-dev.off()
-
-
-# ================================================================================
-# 42. PDF
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("CREATING PDF\n")
-cat("============================================================\n")
-
-pdf(
-  PDF_FILE,
-  width = 20,
-  height = 12,
-  family = "Helvetica"
-)
-
-par(
-  mar = c(
-    1,
-    1,
-    1,
-    1
-  ),
-  xpd = TRUE,
-  family = "sans"
-)
-
+grDevices::pdf(PDF_FILE,width=20,height=12,family="Helvetica")
+par(mar=c(1,1,1,1),xpd=TRUE,family="sans")
 plot_integrated_figure()
+grDevices::dev.off()
 
-dev.off()
-
-
-# ================================================================================
-# 43. TIFF
-# ================================================================================
-
-cat("\n============================================================\n")
-cat("CREATING TIFF\n")
-cat("============================================================\n")
-
-tiff(
-  TIFF_FILE,
-  width = 10000,
-  height = 6000,
-  res = 600,
-  compression = "lzw"
-)
-
-par(
-  mar = c(
-    1,
-    1,
-    1,
-    1
-  ),
-  xpd = TRUE,
-  family = "sans"
-)
-
+grDevices::tiff(TIFF_FILE,width=10000,height=6000,res=600,compression="lzw")
+par(mar=c(1,1,1,1),xpd=TRUE,family="sans")
 plot_integrated_figure()
+grDevices::dev.off()
 
-dev.off()
-
-
-# ================================================================================
-# 44. FINAL TNW1 CHECK
-# ================================================================================
-
-cat("\n")
-cat("============================================================\n")
-cat("FINAL TNW1 CHECK\n")
-cat("============================================================\n")
-
-print(
-  dat[
-    dat$Key ==
-      normalize_genome(
-        "TNW1"
-      ),
-    c(
-      "Genome",
-      "Genome_size_Mb",
-      "TE",
-      "RIP",
-      "LRAR",
-      "TE_RIP_overlap",
-      "Total_BGC",
-      "NRPS",
-      "PKS",
-      "Hybrid",
-      "Terpene",
-      "Other_BGC",
-      "GH",
-      "GT",
-      "CE",
-      "PL",
-      "AA",
-      "CBM"
-    ),
-    drop = FALSE
-  ]
-)
-
-
-# ================================================================================
-# 45. FINAL SUMMARY
-# ================================================================================
-
-cat("\n")
-cat("============================================================\n")
-cat("FUSARIUM 36 FINAL FIGURE COMPLETE\n")
-cat("============================================================\n")
-
-cat("\nGenomes: ", length(master_order), "\n", sep = "")
-
-cat("\nPNG:\n")
-cat(PNG_FILE, "\n")
-
-cat("\nPDF:\n")
-cat(PDF_FILE, "\n")
-
-cat("\nTIFF:\n")
-cat(TIFF_FILE, "\n")
-
-cat("\nData:\n")
-cat(DATA_FILE, "\n")
-
-cat("\n============================================================\n")
-cat("IMPORTANT FIXES INCLUDED\n")
-cat("============================================================\n")
-
-cat("TNW1 / TNW1_proteins matching     : FIXED\n")
-cat("TNW_1 matching                     : FIXED\n")
-cat("TNW1 data checked before plotting  : YES\n")
-cat("Genome order                       : EXACT 36\n")
-cat("CAFE values                        : SEPARATE\n")
-cat("Genome names                       : BOLD\n")
-cat("CAFE values                        : BOLD\n")
-cat("Feature bars                       : NO numbers\n")
-cat("antiSMASH legend                   : SHORT + SEPARATE\n")
-cat("dbCAN3 legend                      : SHORT + SEPARATE\n")
-cat("Large title                        : REMOVED\n")
-cat("PNG                                : 600 dpi\n")
-cat("TIFF                               : 600 dpi\n")
-cat("PDF                                : VECTOR\n")
-
-cat("\n============================================================\n")
-cat("OUTPUT COMPLETE\n")
-cat("============================================================\n")
+# ---- 16. FINAL VALIDATION / SUMMARY -------------------------------------------
+stopifnot(identical(dat$Genome,master_order))
+cat("\nFUSARIUM 36 FIGURE COMPLETE\n")
+cat("Genomes in exact master order: ",nrow(dat),"\n",sep="")
+cat("TNW1 row:\n")
+print(dat[tnw1_row,c("Genome",numeric_columns),drop=FALSE])
+cat("\nPNG:  ",PNG_FILE,"\n",sep="")
+cat("PDF:  ",PDF_FILE,"\n",sep="")
+cat("TIFF: ",TIFF_FILE,"\n",sep="")
+cat("DATA: ",DATA_FILE,"\n",sep="")
+cat("\nNote: exported data retain NA; missing plotting measurements are shown as empty-length bars.\n")
